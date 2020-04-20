@@ -24,6 +24,11 @@
                          [(not v)
                           (error "undefined variable" x)]
                          [else v]))]
+      [`(eq? ,e1 ,e2)
+         (eq? e1 e2)]
+      [`(if ,e1 ,e2 ,e3)
+        (let ([v1 (interp e1 env)])
+          (if (eq? v1 #t) (interp e2 env) (interp e3 env)))]
       [`(let ([,x ,e1]) ,e2)
        (let ([v1 (interp e1 env)])
          (interp e2 (ext-env x v1 env)))]

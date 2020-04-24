@@ -1,4 +1,3 @@
-
 (define interp
   (lambda (exp env)
     (match exp
@@ -17,8 +16,7 @@
           (begin (display "go") (display env) (newline)
                  (let ([v1 (match e1
                              [`(lambda (,g) ,s)
-                              (Closure e1 (ext-env (check (flatten s) x)
-                                   (Closure e1 env) env))])])
+                              (Closure e1 env)])])
              (begin (display "exe rec") (display env) (newline)(interp e2 (ext-env x v1 env)))))]
       [`(let ([,x ,e1]) ,e2)
        (let ([v1 (interp e1 env)])
@@ -31,7 +29,7 @@
              [v2 (interp e2 env)])
          (begin (display "evan")(display v1)(match v1
            [(Closure `(lambda (,x) ,e) env-save)
-            (begin (display "new env")(display env-save)(interp e (ext-env x v2 env-save)))]))))]
+            (begin (display "new env")(display env-save)(interp e (ext-env x v2 (ext-env e1 v1 env-save))))]))))]
       [`(,op ,e1 ,e2)
        (begin (display "+") (newline)(let ([v1 (interp e1 env)]
              [v2 (interp e2 env)])

@@ -26,29 +26,15 @@
           (let ([v1 (lookup (car x) env)])
             (if (not v1)
                 (check (cdr x) env)
-                v1)))))
+                #t)))))
 
-(define check
-  (lambda (x env)
-   (if (eq? x '()) #f
-    (let ([p (car x)]
-          [g (cdr x)])
-             (let ([v (assq p env)]
-                  [s (assq g env)])
-              (cond
-                 [(or (not (null? s)) (not (null? v))) #t]
-                 [else (begin (unless (list? (car p)) (check (car p) env))
-                              (unless (list? (cdr p)) (check (cdr p) env))
-                              (unless (list? (car g)) (check (car g) env))
-                              (unless (list? (cdr g)) (check (cdr g) env)))]))))))
 (define have-defined
   (lambda (x env)
     (if (eq? x '()) '() 
-         (let ([p (car x)])
-          (let ([v (assq p env)])
-         (cond [(not v) (have-defined (cdr x) env)] 
-          [else p]) 
-          )))))
+          (let ([v1 (lookup (car x) env)])
+            (if (not v1)
+               (check (cdr x) env)
+               (car x))))))
 (define interp
   (lambda (exp env)
     (match exp

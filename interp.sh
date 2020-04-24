@@ -1,38 +1,42 @@
+
 (define interp
   (lambda (exp env)
     (match exp
       [(? number? x) x]
-      [(? symbol? x) (begin (display "symbol")(let ([v (lookup x env)])
+      [(? symbol? x) (begin (display "symbol") (newline)(let ([v (lookup x env)])
                        (cond
                          [(not v)
                           (error "undefined variable" x)]
                          [else v])))]
       [`(eq? ,e1 ,e2)
-         (begin (display "eq") (display env) (newline)(eq? e1 e2))]
+         (begin (display "eq") (display env) (newline)(let ([g (interp e1 env)] [s (interp e2 env)]) (= g s)))]
       [`(if ,e1 ,e2 ,e3)
-        (let ([v1 (interp e1 env)])
-          (if (eq? v1 #t) (interp e2 env) (interp e3 env)))]
-      [`(letrec ([,x (lambda (,s) ,e1)]) ,e2)
-          (begin (display "go") (display env) (newline) (let ([v1 (interp e1 (ext-env x `procedure env))])
+        (begin (display "if")(let ([v1 (interp e1 env)])
+          (if (not v1) (begin (display v1)(display "e3")(interp e3 env)) (begin (display "e2")(interp e2 env)) )))]
+      [`(letrec ([,x ,e1]) ,e2)
+          (begin (display "go") (display env) (newline)
+                 (let ([v1 (match e1
+                             [`(lambda (,g) ,s)
+                              (Closure e1 (ext-env (check (flatten s) x)
+                                   (Closure e1 env) env))])])
              (begin (display "exe rec") (display env) (newline)(interp e2 (ext-env x v1 env)))))]
       [`(let ([,x ,e1]) ,e2)
        (let ([v1 (interp e1 env)])
          (interp e2 (ext-env x v1 env)))]
       [`(lambda (,x) ,e)
-       (begin (display "lambda")(display env) (newline)(if (eq? (check (flatten e) env) 'procedure)
-         (Closure exp (ext-env  (have-defined (flatten e) env) (Closure exp env) env))
-       (display "come")))]
+       (begin (display "lambda")(display env) (newline)
+         (Closure exp env))]
       [`(,e1 ,e2)
-       (begin (display "eva") (display env) (newline) (let ([v1 (interp e1 env)]
+       (begin (display "eva") (display env) (display e1) (display e2)(newline) (let ([v1 (interp e1 env)]
              [v2 (interp e2 env)])
-         (match v1
+         (begin (display "evan")(display v1)(match v1
            [(Closure `(lambda (,x) ,e) env-save)
-            (interp e (ext-env x v2 env-save))])))]
+            (begin (display "new env")(display env-save)(interp e (ext-env x v2 env-save)))]))))]
       [`(,op ,e1 ,e2)
-       (let ([v1 (interp e1 env)]
+       (begin (display "+") (newline)(let ([v1 (interp e1 env)]
              [v2 (interp e2 env)])
          (match op
            ['+ (+ v1 v2)]
            ['- (- v1 v2)]
            ['* (* v1 v2)]
-           ['/ (/ v1 v2)]))])))
+           ['/ (/ v1 v2)])))])))

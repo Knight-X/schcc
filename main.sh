@@ -21,12 +21,11 @@
         (else (list x))))
 
 (define check
-    (lambda (x env)
-      (if (eq? x '()) #f
-          (let ([v1 (lookup (car x) env)])
-            (if (not v1)
-                (check (cdr x) env)
-                #t)))))
+    (lambda (x target)
+      (if (eq? x '()) '() 
+            (if (eq? target (car x))
+                (check (cdr x) target)
+                (car x))))))
 
 (define have-defined
   (lambda (x env)

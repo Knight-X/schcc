@@ -1,4 +1,20 @@
 
+(define env0 '())
+
+
+(define ext-env
+  (lambda (x v env)
+    (cons `(,x . ,v) env)))
+
+(define lookup
+  (lambda (x env)
+    (let ([p (assq x env)])
+      (cond
+        [(not p) #f]
+        [else (cdr p)]))))
+
+(struct Closure (f env))
+
 (define apply-cont
   (lambda (cont v)
     (cont v)))
@@ -13,6 +29,42 @@
     (lambda (val)
       (if (not v1) (begin (display v1)(display "e3")(interp e3 env cont)) 
         (begin (display "e2")(interp e2 env cont))))))
+
+(define diff1-cont 
+  (lambda (exp2 env cont) 
+    (lambda (val1)
+      (begin (display "diff1-cont") (interp exp2 env (diff2-cont val1 cont))))))
+
+(define diff2-cont
+  (lambda (val1 cont) 
+    (lambda (val2)
+      (begin (display "diff2-cont") (apply-cont cont (- val1 val2))))))
+
+(define plus1-cont
+  (lambda (exp2 env cont)
+    (lambda (val1)
+      (begin (display "plus1-cont") (interp exp2 env (plus2-cont val1 cont))))))
+
+(define plus2-cont
+  (lambda (val1 cont)
+    (lambda (val2)
+      (begin (display "plus2-cont") (apply-cont cont (+ val1 val2))))))
+
+(define rator-cont  
+  (lambda (rand env cont)
+    (lambda (val1)
+      (interp rand env (rand-cont val1 cont)))))
+
+(define rand-cont 
+  (lambda (val1 cont)
+    (lambda (val2)
+      (apply-procedure val1 val2 cont))))
+
+(define apply-procedure
+  (lambda (val1 val2 cont)
+    (match val1
+     [`(lambda (,x) ,e1) 
+        (interp e1 (extend-env x val2 saved-env))])))
 
 (define interp
   (lambda (exp env cont)
@@ -38,19 +90,17 @@
          (interp e1 env (let-exp-cont x e2 env cont))]
       [`(lambda (,x) ,e)
        (begin (display "lambda")(display env) (newline)
-         (apply-cont cont (Closure exp env))]
+         (apply-cont cont (Closure exp env)))]
       [`(,e1 ,e2)
-       (begin (display "eva") (display env) (display e1) (display e2)(newline) (let ([v1 (interp e1 env)]
-             [v2 (interp e2 env)])
-         (begin (display "evan")(display v1)(match v1
-           [(Closure `(lambda (,x) ,e) env-save)
-            (begin (display "new env")(display env-save)(interp e (ext-env x v2 (ext-env e1 v1 env-save))))]))))]
+       (begin (display "eva") (display env) (display e1) (display e2)(newline) 
+         (begin (display "evan")(display v1)
+            (interp e1 env (rator-cont e2 env cont))))]
       [`(,op ,e1 ,e2)
        (begin (display "+") (newline)
              
          (match op
-           ['+ (interp e1 env (plus-cont1 e2 env cont))]
-           ['- (interp e1 env (minus-cont1 e2 env cont))]
+           ['+ (interp e1 env (plus1-cont e2 env cont))]
+           ['- (interp e1 env (diff1-cont e2 env cont))]
            ['* (interp e1 env (multi-cont1 e2 env cont))]
            ['/ (interp e1 env (divide-cont1 e2 env cont))]))])))
 
@@ -60,3 +110,6 @@
       (begin
         (display "end of continuation")
         val))))
+(define r2
+  (lambda (exp)
+    (interp exp env0 (end-cont))))

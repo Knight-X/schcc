@@ -22,13 +22,13 @@
 (define let-exp-cont
   (lambda (var body env cont)
     (lambda (val)
-       (interp body (ext-env var val env)))))
+       (interp body (ext-env var val env) cont))))
 
 (define if-test-cont
   (lambda (exp2 exp3 env cont)
     (lambda (val)
-      (if (not v1) (begin (display v1)(display "e3")(interp e3 env cont)) 
-        (begin (display "e2")(interp e2 env cont))))))
+      (if (not val) (begin (display val)(display "exp3")(interp exp3 env cont))
+        (begin (display "exp2")(interp exp2 env cont))))))
 
 (define diff1-cont 
   (lambda (exp2 env cont) 
@@ -62,9 +62,22 @@
 
 (define apply-procedure
   (lambda (val1 val2 cont)
+    (begin (display "procedure") (display val1)
     (match val1
-     [`(lambda (,x) ,e1) 
-        (interp e1 (extend-env x val2 saved-env))])))
+     [(Closure `(lambda (,x) ,e1) env-save)
+        (interp e1 (ext-env x val2 env-save) cont)]))))
+
+(define end-cont
+  (lambda ()
+    (lambda (val)
+      (begin
+        (display "end of continuation")
+        val))))
+
+(define zero1-cont 
+  (lambda (cont)
+    (lambda (val)
+      (apply-cont cont (zero? val)))))
 
 (define interp
   (lambda (exp env cont)
@@ -77,6 +90,9 @@
                          [else v]))))]
       [`(eq? ,e1 ,e2)
          (begin (display "eq") (display env) (newline)(let ([g (interp e1 env)] [s (interp e2 env)]) (= g s)))]
+      [`(zero? ,e1)
+         (begin (display "zero") (newline)
+           (interp e1 env (zero1-cont cont)))]
       [`(if ,e1 ,e2 ,e3)
         (begin (display "if")
          (interp e1 env (if-test-cont e2 e3 env cont)))]
@@ -93,7 +109,7 @@
          (apply-cont cont (Closure exp env)))]
       [`(,e1 ,e2)
        (begin (display "eva") (display env) (display e1) (display e2)(newline) 
-         (begin (display "evan")(display v1)
+         (begin (display "evan")(display e1)
             (interp e1 env (rator-cont e2 env cont))))]
       [`(,op ,e1 ,e2)
        (begin (display "+") (newline)
@@ -104,12 +120,6 @@
            ['* (interp e1 env (multi-cont1 e2 env cont))]
            ['/ (interp e1 env (divide-cont1 e2 env cont))]))])))
 
-(define end-cont
-  (lambda ()
-    (lambda (val)
-      (begin
-        (display "end of continuation")
-        val))))
 (define r2
   (lambda (exp)
     (interp exp env0 (end-cont))))

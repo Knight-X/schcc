@@ -52,8 +52,8 @@
 
 
 (define rator-cont
-  (lambda (rand env cont)
-    (lambda (exp1 val1)
+  (lambda (exp1 rand env cont)
+    (lambda (val1)
       (interp rand env (rand-cont exp1 val1 cont)))))
 
 (define rand-cont

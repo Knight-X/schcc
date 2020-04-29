@@ -50,22 +50,23 @@
     (lambda (val2)
       (begin (display "plus2-cont") (apply-cont cont (+ val1 val2))))))
 
-(define rator-cont  
-  (lambda (rand env cont)
-    (lambda (val1)
-      (interp rand env (rand-cont val1 cont)))))
 
-(define rand-cont 
-  (lambda (val1 cont)
+(define rator-cont
+  (lambda (rand env cont)
+    (lambda (exp1 val1)
+      (interp rand env (rand-cont exp1 val1 cont)))))
+
+(define rand-cont
+  (lambda (exp1 val1 cont)
     (lambda (val2)
-      (apply-procedure val1 val2 cont))))
+      (apply-procedure exp1 val1 val2 cont))))
 
 (define apply-procedure
-  (lambda (val1 val2 cont)
-    (begin (display "procedure") (display val1)
+  (lambda (exp1 val1 val2 cont)
+    (begin (display "procedure") (display exp1) (display val1)
     (match val1
      [(Closure `(lambda (,x) ,e1) env-save)
-        (interp e1 (ext-env x val2 env-save) cont)]))))
+        (interp e1 (ext-env x val2 (ext-env exp1 val1 env-save)) cont)]))))
 
 (define end-cont
   (lambda ()
@@ -110,7 +111,7 @@
       [`(,e1 ,e2)
        (begin (display "eva") (display env) (display e1) (display e2)(newline) 
          (begin (display "evan")(display e1)
-            (interp e1 env (rator-cont e2 env cont))))]
+            (interp e1 env (rator-cont e1 e2 env cont))))]
       [`(,op ,e1 ,e2)
        (begin (display "+") (newline)
              

@@ -1,4 +1,4 @@
-
+#lang racket
 (define env0 '())
 
 
@@ -118,8 +118,8 @@
          (match op
            ['+ (interp e1 env (plus1-cont e2 env cont))]
            ['- (interp e1 env (diff1-cont e2 env cont))]
-           ['* (interp e1 env (multi-cont1 e2 env cont))]
-           ['/ (interp e1 env (divide-cont1 e2 env cont))]))])))
+           ))]
+      [_ #f])))
 
 (define r2
   (lambda (exp)

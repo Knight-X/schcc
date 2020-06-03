@@ -7,7 +7,7 @@
       (let ([pos (list-index
              (lambda (exp)
                      (not (is-exp-simple? exp)))
-             exps)])
+                exps)])
         (begin (display pos)
       (if (not pos)
          (builder (map cps-of-simple-exp exps))
@@ -15,7 +15,6 @@
          (cps-of-exp
           (list-ref exps pos)
                     `(lambda ,(list var) ,(cps-of-rest (list-set exps pos var))))))))))))
-
 
 (define cps-of-exp
   (lambda (exp cont)

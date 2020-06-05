@@ -1,4 +1,5 @@
 #lang racket
+
 (define cps-of-exps
   (lambda (exps builder)
     (let cps-of-rest ((exps exps))
@@ -30,6 +31,7 @@
                                [new_body (append (list e) 'k%00)])
                                (make-send-to-cont cont
                                             `(lambda (,new_var) (,new_body))))]
+      
       [`(,e1 ,e2) (cps-of-call-exp e1 e2 cont)]))))
 
 (define make-send-to-cont
@@ -46,10 +48,13 @@
   (lambda (rator rands cont)
     (begin (newline)
            (display "cps-call")
+           (display "rands")
+           (display rands)
+           (newline)
            (display cont)
     (cps-of-exps (cons rator rands)
                  (lambda (new-args)
-                   (begin (display "call builder") (display (car new-args) ) `(,(car new-args) ,(append (cdr new-args)  (list cont)))))))))
+                   (begin (newline) (display "call builder") (display (car new-args) ) `(,(car new-args) ,(append (cdr new-args)  (list cont)))))))))
 (define is-exp-simple?
   (lambda (exp)
     (begin

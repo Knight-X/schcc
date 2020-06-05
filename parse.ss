@@ -17,6 +17,7 @@
     (match exp
       ['lambda (list 'lambda)]
       ['+ (begin (display "+")) (list '+)]
+      ['- (begin (display "-")) (list '-)]
       [(? symbol? x) (begin (display "symbol")) (list (identifier x))]
       [(? number? x) (begin (display "number")) (list x)]
       [_  (begin (display "_") (newline))   (append  (if (list? (car exp)) (list (scan (car exp))) (scan (car exp)))
@@ -30,7 +31,7 @@
         [(? number? x) (const-exp x)]
         [(identifier a) exp]
         [`(lambda  (,x) ,e) (lambda-exp (parse x) (parse e))]
-        [`(,e1 ,e2) (lambda-call-exp e1 e2)]
+        [`(,e1 ,e2) (lambda-call-exp (parse e1) (parse e2))]
         [`(,op ,e1 ,e2)
            (let ([var1 (parse e1)]
                  [var2 (parse e2)])
@@ -41,10 +42,20 @@
 (define printc
     (lambda (exp)
       (newline)
+      (display exp)
+      (newline)
       (match exp
         [(identifier a) (append (list 'identifier:) (list a))]
         [(const-exp b) (append (list 'const:) (list b))]
+        [(add-exp var1 var2) (append (list 'add-exp:) `(,(printc var1)) `(,(printc var2)))]
         [(lambda-exp g y) 
                           (append (list 'lambda-exp:)
-                                  `(,(printc g))
-                                  (printc y))])))
+                                   (list (identifier-identi g))
+                                  `(,(printc y)))]
+        [(lambda-call-exp a b)
+                          (append (list 'lambda-call-exp:)
+                                  `(,(printc a))
+                                  `(,(printc b)))])))
+
+
+

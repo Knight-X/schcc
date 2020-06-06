@@ -26,7 +26,7 @@
       (newline)
     (match exp
       [(? number? x) (make-send-to-cont cont x)]
-      [(? symbol? x) (make-send-to-cont cont x)]
+      [`(identifier: ,x) (make-send-to-cont cont x)]
       [`(lambda (,x) ,e) (let ([new_var (append (list x) 'k%00)]
                                [new_body (append (list e) 'k%00)])
                                (make-send-to-cont cont
@@ -62,10 +62,10 @@
       (display "is-simple")
       (display exp)
     (match exp
-      [(? number? x) (begin (display "number")#t)]
-      [(? symbol? x) (begin (display "symbol")#t)]
+      [`(const: x) (begin (display "number")#t)]
+      [`(identifier: ,x) (begin (display "symbol")#t)]
       [`(,e1 ,e2) (begin (display "call"))#f]
-      [`(lambda (,x) ,e) (begin (display "lambda")#t)]
+      [`(lambda-exp: ,x ,e) (begin (display "lambda")#t)]
       [_ (begin (display "else")#f)]))))
 
 (define cps-of-simple-exp
@@ -75,9 +75,9 @@
       (display "simple-exp")
       (display exp)
     (match  exp
-     [(? number? x) x]
-     [(? symbol? x) x]
-     [`(lambda (,x) ,e) (let ([new_x (append (list x) '(k%00))]
+     [`(const: x) exp]
+     [`(identifier: ,x) exp]
+     [`(lambda-exp: ,x ,e) (let ([new_x (append (list x) '(k%00))]
                               [new_body (cps-of-exp e 'k%00)])
                           `(lambda (,new_x) (,new_body)))]))))
 

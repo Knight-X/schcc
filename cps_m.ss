@@ -1,5 +1,5 @@
 #lang racket
-
+(require "parse.rkt")
 (define cps-of-exps
   (lambda (exps builder)
     (let cps-of-rest ((exps exps))
@@ -25,9 +25,9 @@
       (display exp)
       (newline)
     (match exp
-      [(? number? x) (make-send-to-cont cont x)]
+      [`(const: ,x) (make-send-to-cont cont x)]
       [`(identifier: ,x) (make-send-to-cont cont x)]
-      [`(lambda (,x) ,e) (let ([new_var (append (list x) 'k%00)]
+      [`(lambda-exp: ,x ,e) (let ([new_var (append (list x) 'k%00)]
                                [new_body (append (list e) 'k%00)])
                                (make-send-to-cont cont
                                             `(lambda (,new_var) (,new_body))))]
@@ -62,7 +62,7 @@
       (display "is-simple")
       (display exp)
     (match exp
-      [`(const: x) (begin (display "number")#t)]
+      [`(const: ,x) (begin (display "number")#t)]
       [`(identifier: ,x) (begin (display "symbol")#t)]
       [`(,e1 ,e2) (begin (display "call"))#f]
       [`(lambda-exp: ,x ,e) (begin (display "lambda")#t)]
@@ -75,7 +75,7 @@
       (display "simple-exp")
       (display exp)
     (match  exp
-     [`(const: x) exp]
+     [`(const: ,x) exp]
      [`(identifier: ,x) exp]
      [`(lambda-exp: ,x ,e) (let ([new_x (append (list x) '(k%00))]
                               [new_body (cps-of-exp e 'k%00)])

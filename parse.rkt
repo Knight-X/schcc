@@ -6,7 +6,7 @@
 (struct const-exp (x))
 (struct lambda-exp (var1 exp1))
 (struct lambda-call-exp (exp1 exp2))
-(provide a-program)
+(provide a-program identifier)
 
 (define scan
   (lambda (exp)
@@ -50,12 +50,12 @@
         [(add-exp var1 var2) (append (list 'add-exp:) `(,(printc var1)) `(,(printc var2)))]
         [(lambda-exp g y) 
                           (append (list 'lambda-exp:)
-                                   (list (identifier-identi g))
+                                   `(,(list (identifier-identi g)))
                                   `(,(printc y)))]
         [(lambda-call-exp a b)
                           (append (list 'lambda-call-exp:)
                                   `(,(printc a))
-                                  `(,(printc b)))])))
+                                  `((,(printc b))))])))
 
 (define a-program
   (lambda (exp)
